@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { LoadingState } from '../types';
 import Button from './common/Button';
@@ -34,11 +35,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
     const dragStartY = useRef(0);
     const dragStartHeight = useRef(0);
 
-    // Notify parent of expansion state
+    // Derived state for visibility
+    const isMinimized = height < 15;
+
+    // Notify parent of expansion state (for hiding progress bar etc)
     useEffect(() => {
         if (onExpandChange) {
-            // Consider expanded if height is significantly larger than the collapsed state (25%)
-            onExpandChange(height > 35);
+            // Consider expanded if height is larger than the default peek state
+            onExpandChange(height > 20);
         }
     }, [height, onExpandChange]);
 
@@ -46,15 +50,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
     useEffect(() => {
         if (isLiveConnected) {
             setHeight(65); // Expand to 65% when live starts for better visibility
-        } else {
-            setHeight(25); // Collapse to 25% when live ends
-        }
+        } 
+        // We don't auto-collapse on disconnect to prevent jarring jumps, user can drag down
     }, [isLiveConnected]);
 
     // Auto-scroll for static transcript
     useEffect(() => {
         const el = scrollRef.current;
-        if (!el || isLiveConnected || isDragging) return; // Don't auto-scroll static if live is active or dragging
+        if (!el || isLiveConnected || isDragging || isMinimized) return; 
         
         let animationFrameId: number;
         let lastTimestamp = 0;
@@ -74,7 +77,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
         
         animationFrameId = window.requestAnimationFrame(step);
         return () => window.cancelAnimationFrame(animationFrameId);
-    }, [isLiveConnected, isDragging]);
+    }, [isLiveConnected, isDragging, isMinimized]);
 
     // Auto-scroll for live transcript
     useEffect(() => {
@@ -112,7 +115,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             let newHeightPct = (newHeightPx / windowHeight) * 100;
             
             // Constraints
-            if (newHeightPct < 20) newHeightPct = 20; // Allow slightly lower collapse
+            if (newHeightPct < 3) newHeightPct = 3; // Allow dragging almost completely down (minimized)
             if (newHeightPct > 95) newHeightPct = 95;
             
             setHeight(newHeightPct);
@@ -123,12 +126,14 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             setIsDragging(false);
 
             // Snap logic
-            if (height > 60) {
-                setHeight(90); // Full expand
-            } else if (height > 35) {
-                setHeight(50); // Half expand
+            if (height < 15) {
+                setHeight(3); // Snap to minimized (just the handle visible)
+            } else if (height < 40) {
+                setHeight(25); // Snap to default peek
+            } else if (height < 75) {
+                setHeight(65); // Snap to Live/Reading view
             } else {
-                setHeight(25); // Collapse
+                setHeight(90); // Snap to Full expand
             }
         };
 
@@ -153,16 +158,17 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             className={`absolute bottom-0 inset-x-0 z-30 glass-panel rounded-t-2xl flex flex-col shadow-[0_-8px_30px_rgba(0,0,0,0.5)] ${isDragging ? '' : 'transition-[height] duration-500 cubic-bezier(0.32, 0.72, 0, 1)'}`}
             style={{ height: `${height}%` }}
         >
-            {/* Draggable Handle Indicator */}
+            {/* Draggable Handle Indicator - Always Visible */}
             <div 
                 className="w-full flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing hover:bg-white/5 transition-colors rounded-t-2xl touch-none"
                 onMouseDown={handleDragStart}
                 onTouchStart={handleDragStart}
             >
-                <div className="w-12 h-1 bg-white/20 rounded-full pointer-events-none"></div>
+                <div className="w-12 h-1.5 bg-white/30 rounded-full pointer-events-none mb-1"></div>
             </div>
 
-            <div className="flex flex-1 flex-row gap-4 px-5 pb-6 pt-1 overflow-hidden relative">
+            {/* Content Area - Fades out when minimized to prevent overlap with BottomNav */}
+            <div className={`flex flex-1 flex-row gap-4 px-5 pb-20 pt-1 overflow-hidden relative transition-opacity duration-200 ${isMinimized ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 {/* Left: Content Area */}
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                     <div className="flex items-center justify-between mb-3 shrink-0">

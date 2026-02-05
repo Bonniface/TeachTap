@@ -8,25 +8,14 @@ interface TopNavProps {
     authorName: string;
     streak: number;
     onStreakClick: () => void;
-    onPathsClick: () => void;
-    onDevClick: () => void;
     onTimeBackClick: () => void;
-    onUploadClick: () => void;
 }
 
-const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStreakClick, onPathsClick, onDevClick, onTimeBackClick, onUploadClick }) => {
+const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStreakClick, onTimeBackClick }) => {
     return (
         <div className="absolute top-0 inset-x-0 z-20 pt-12 pb-4 px-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
             <div className="flex items-start justify-between pointer-events-auto">
                 <div className="flex gap-2">
-                     {/* Paths / Map Button */}
-                    <button 
-                        onClick={onPathsClick}
-                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
-                    >
-                        <span className="material-symbols-outlined group-hover:text-primary transition-colors">map</span>
-                    </button>
-
                      {/* TimeBack Copilot Button */}
                      <button 
                         onClick={onTimeBackClick}
@@ -54,24 +43,6 @@ const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStr
                 </div>
 
                 <div className="flex gap-2">
-                    {/* Upload Button */}
-                    <button 
-                        onClick={onUploadClick}
-                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary"
-                        aria-label="Upload Video"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
-                    </button>
-
-                    {/* Developer API Button */}
-                    <button 
-                        onClick={onDevClick}
-                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary"
-                        aria-label="Developer API"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">data_object</span>
-                    </button>
-
                     {/* Menu Button */}
                     <button className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary">
                         <span className="material-symbols-outlined">more_vert</span>

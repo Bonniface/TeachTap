@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import VideoBackground from './components/VideoBackground';
 import TopNav from './components/TopNav';
 import ActionSidebar from './components/ActionSidebar';
@@ -11,88 +11,79 @@ import LearningPathsModal from './components/features/LearningPathsModal';
 import DeveloperPortalModal from './components/features/DeveloperPortalModal';
 import TimeBackModal from './components/features/TimeBackModal';
 import UploadVideoModal from './components/features/UploadVideoModal';
+import BottomNavBar from './components/BottomNavBar';
+import DiscoverPage from './components/pages/DiscoverPage';
+import InboxPage from './components/pages/InboxPage';
+import ProfilePage from './components/pages/ProfilePage';
 import { generateQuizForTopic } from './services/geminiService';
 import { offlineService } from './services/offlineService';
 import { useLiveGemini } from './hooks/useLiveGemini';
 import { useOffline } from './hooks/useOffline';
 import { FeedItemData, LoadingState, QuizQuestion, Note, Achievement, SyncAction, LearningPath, PathStep } from './types';
 
-// Mock Data for the Feed
-const MOCK_FEED_ITEM: FeedItemData = {
-  id: '1',
-  topic: 'Physics 101',
-  title: 'Relativity Basics',
-  description: 'Learn the basics of special relativity with Albert Einstein.',
-  videoPosterUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVclnW6Hm-h9-mBVYNMh4CZE6RIAIZ-M-OFEqUD7gByDWbJZoa63-lawZSy2ZAOoaCzk2SWl7BK8MXBSU7gZtcNoMGX0XaC7XUNJNdiPnb6DWC297Yb6hjbMhCjiDQ5HNzzOTC6Dqmvoj6ioFyPqk08oe6QdKbgeSXKgw7NIYcBD9U44hrbynC65GyRaJo_0JFdJbnrFr1heuC_Vf9vyKE2iFKxgPWqTcJggr22PYPIPrMlgfWBynuNTd9S9whMcTCqEUGdYJhnmg',
-  author: {
-    name: 'Albert Einstein',
-    avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-Tw2-YnT2oD1h8L4S6kVMdGWRwSpBVgYl8FpzkTjBwHtYre9yLHhbJ5zXHLlTGdDhQz8N1Z3RAhrITifNYGoJECrLQVB3gwcisv6B5JNuQbLp1DyDQelcV8KeR3CZkcQiiR6nQKTSFs0l2ubab2X1uanB7fT-ShAHmKtekKbXATouQhs3siRIzJiaD3sS9_C6cU7ID5y-B1C52EumwQpZpmSHBQMpFZTLSPJ7v4AD081xygTpklk-AztQrRzGJuoEOZ31Pkb55Sk',
-    isVerified: true
-  },
-  stats: {
-    likes: '12.5k',
-    comments: '342',
-    shares: '1.2k'
-  },
-  transcript: [
-    "<span class='text-primary font-bold'>E=mc²</span> explains that energy equals mass times the speed of light squared. This means a small amount of mass can be converted into a tremendous amount of energy.",
-    "Wait, let's break that down further. The speed of light is a constant, approximately 300,000 km per second.",
-    "This fundamental equation changed how we understand the universe, linking matter and energy inextricably.",
-    "In simple terms, mass is just a super-concentrated form of energy waiting to be released."
-  ]
-};
-
-const SYSTEM_INSTRUCTION = `You are Albert Einstein, the famous physicist. 
-You are teaching a short class on Relativity. 
-You are witty, slightly eccentric, but extremely brilliant and encouraging.
-Keep your answers relatively short (under 2 sentences) to keep the conversation flowing.
-Use analogies.`;
-
-// Mock Achievements
-const INITIAL_ACHIEVEMENTS: Achievement[] = [
+// Extended Mock Feed - Base items
+const MOCK_FEED_BASE: FeedItemData[] = [
     {
-        id: '1',
-        title: 'Quiz Whiz',
-        description: 'Get a perfect score on 5 quizzes',
-        icon: 'psychology',
-        progress: 3,
-        maxProgress: 5,
-        isUnlocked: false,
-        color: 'purple'
+      id: '1',
+      topic: 'Physics 101',
+      title: 'Relativity Basics',
+      description: 'Learn the basics of special relativity with Albert Einstein.',
+      videoPosterUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVclnW6Hm-h9-mBVYNMh4CZE6RIAIZ-M-OFEqUD7gByDWbJZoa63-lawZSy2ZAOoaCzk2SWl7BK8MXBSU7gZtcNoMGX0XaC7XUNJNdiPnb6DWC297Yb6hjbMhCjiDQ5HNzzOTC6Dqmvoj6ioFyPqk08oe6QdKbgeSXKgw7NIYcBD9U44hrbynC65GyRaJo_0JFdJbnrFr1heuC_Vf9vyKE2iFKxgPWqTcJggr22PYPIPrMlgfWBynuNTd9S9whMcTCqEUGdYJhnmg',
+      author: {
+        name: 'Albert Einstein',
+        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-Tw2-YnT2oD1h8L4S6kVMdGWRwSpBVgYl8FpzkTjBwHtYre9yLHhbJ5zXHLlTGdDhQz8N1Z3RAhrITifNYGoJECrLQVB3gwcisv6B5JNuQbLp1DyDQelcV8KeR3CZkcQiiR6nQKTSFs0l2ubab2X1uanB7fT-ShAHmKtekKbXATouQhs3siRIzJiaD3sS9_C6cU7ID5y-B1C52EumwQpZpmSHBQMpFZTLSPJ7v4AD081xygTpklk-AztQrRzGJuoEOZ31Pkb55Sk',
+        isVerified: true
+      },
+      stats: { likes: '12.5k', comments: '342', shares: '1.2k' },
+      transcript: ["<span class='text-primary font-bold'>E=mc²</span> explains that energy equals mass times the speed of light squared.", "The speed of light is a constant, approximately 300,000 km per second.", "In simple terms, mass is just a super-concentrated form of energy waiting to be released."]
     },
     {
-        id: '2',
-        title: 'Social Butterfly',
-        description: 'Share 3 videos with friends',
-        icon: 'share',
-        progress: 1,
-        maxProgress: 3,
-        isUnlocked: false,
-        color: 'blue'
+      id: '2',
+      topic: 'Astronomy',
+      title: 'Black Holes 101',
+      description: 'Understanding the event horizon.',
+      videoPosterUrl: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2011&auto=format&fit=crop',
+      author: {
+        name: 'Neil Tyson',
+        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVclnW6Hm-h9-mBVYNMh4CZE6RIAIZ-M-OFEqUD7gByDWbJZoa63-lawZSy2ZAOoaCzk2SWl7BK8MXBSU7gZtcNoMGX0XaC7XUNJNdiPnb6DWC297Yb6hjbMhCjiDQ5HNzzOTC6Dqmvoj6ioFyPqk08oe6QdKbgeSXKgw7NIYcBD9U44hrbynC65GyRaJo_0JFdJbnrFr1heuC_Vf9vyKE2iFKxgPWqTcJggr22PYPIPrMlgfWBynuNTd9S9whMcTCqEUGdYJhnmg',
+        isVerified: true
+      },
+      stats: { likes: '45k', comments: '1.2k', shares: '5k' },
+      transcript: ["A black hole is a region of spacetime where gravity is so strong that nothing can escape.", "The event horizon is the point of no return.", "Singularity lies at the center."]
     },
     {
-        id: '3',
-        title: 'Night Owl',
-        description: 'Complete a study session after 8 PM',
-        icon: 'bedtime',
-        progress: 1,
-        maxProgress: 1,
-        isUnlocked: true,
-        color: 'indigo'
-    },
-    {
-        id: '4',
-        title: 'Curious Mind',
-        description: 'Ask 10 questions to the AI tutor',
-        icon: 'chat',
-        progress: 4,
-        maxProgress: 10,
-        isUnlocked: false,
-        color: 'green'
+      id: '3',
+      topic: 'Chemistry',
+      title: 'The Periodic Table',
+      description: 'Why is it arranged that way?',
+      videoPosterUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2070&auto=format&fit=crop',
+      author: {
+        name: 'Marie Curie',
+        avatarUrl: 'https://i.pravatar.cc/150?u=marie',
+        isVerified: true
+      },
+      stats: { likes: '8.2k', comments: '210', shares: '400' },
+      transcript: ["Elements are arranged by atomic number, electron configuration, and recurring chemical properties.", "Groups run vertically, periods run horizontally.", "Noble gases are inert and stable."]
     }
 ];
 
-// Mock Learning Paths
+// Replicate for infinite scroll feel
+const MOCK_FEED: FeedItemData[] = [
+    ...MOCK_FEED_BASE,
+    ...MOCK_FEED_BASE.map(i => ({...i, id: i.id + '_dup1', title: i.title + ' (Part 2)'})),
+    ...MOCK_FEED_BASE.map(i => ({...i, id: i.id + '_dup2', title: i.title + ' (Part 3)'}))
+];
+
+const SYSTEM_INSTRUCTION = `You are a helpful AI tutor. You are witty, slightly eccentric, but extremely brilliant and encouraging. Keep your answers relatively short (under 2 sentences) to keep the conversation flowing.`;
+
+// Initial Mock Data
+const INITIAL_ACHIEVEMENTS: Achievement[] = [
+    { id: '1', title: 'Quiz Whiz', description: 'Get a perfect score on 5 quizzes', icon: 'psychology', progress: 3, maxProgress: 5, isUnlocked: false, color: 'purple' },
+    { id: '2', title: 'Social Butterfly', description: 'Share 3 videos with friends', icon: 'share', progress: 1, maxProgress: 3, isUnlocked: false, color: 'blue' },
+    { id: '3', title: 'Night Owl', description: 'Complete a study session after 8 PM', icon: 'bedtime', progress: 1, maxProgress: 1, isUnlocked: true, color: 'indigo' },
+    { id: '4', title: 'Curious Mind', description: 'Ask 10 questions to the AI tutor', icon: 'chat', progress: 4, maxProgress: 10, isUnlocked: false, color: 'green' }
+];
+
 const INITIAL_PATHS: LearningPath[] = [
     {
         id: '101',
@@ -114,8 +105,21 @@ const INITIAL_PATHS: LearningPath[] = [
 const App: React.FC = () => {
   const { isOnline, isOffline } = useOffline();
   
+  // Navigation State
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Feed Scroll State
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   // Data State
-  const [currentFeedItem, setCurrentFeedItem] = useState<FeedItemData>(MOCK_FEED_ITEM);
+  const [feedItems, setFeedItems] = useState<FeedItemData[]>(MOCK_FEED);
+  
+  // Derived current item for global components (Copilot, TopNav)
+  const currentFeedItem = feedItems[currentIndex];
+  
+  // Progress Bar State
+  const [progress, setProgress] = useState(0);
   
   // Modal States
   const [showQuiz, setShowQuiz] = useState(false);
@@ -124,7 +128,7 @@ const App: React.FC = () => {
   const [showPaths, setShowPaths] = useState(false);
   const [showDevPortal, setShowDevPortal] = useState(false);
   const [showTimeBack, setShowTimeBack] = useState(false);
-  const [showUpload, setShowUpload] = useState(false); // New State
+  const [showUpload, setShowUpload] = useState(false);
   
   // Logic State
   const [quizData, setQuizData] = useState<QuizQuestion | null>(null);
@@ -143,54 +147,72 @@ const App: React.FC = () => {
   // Live API Hook
   const { connect, disconnect, connected, isSpeaking, transcripts } = useLiveGemini(SYSTEM_INSTRUCTION);
 
-  // Initialize: Check for offline videos if offline, or sync pending actions if online
+  // Handle Scroll to update active video index
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      const { scrollTop, clientHeight } = e.currentTarget;
+      const index = Math.round(scrollTop / clientHeight);
+      if (index !== currentIndex && index >= 0 && index < feedItems.length) {
+          setCurrentIndex(index);
+          setProgress(0); // Reset progress on slide change
+      }
+  };
+
+  // Progress Bar Animation
+  useEffect(() => {
+    let interval: number;
+    if (!isPanelExpanded && activeTab === 'home') {
+        interval = window.setInterval(() => {
+            setProgress(prev => (prev >= 100 ? 0 : prev + 0.5));
+        }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [currentIndex, isPanelExpanded, activeTab]);
+
+  // Initialize: Check for offline videos if offline
   useEffect(() => {
     const init = async () => {
         if (isOnline) {
-            // 1. Sync pending offline actions
             await offlineService.processSyncQueue(handleSyncAction);
-            // 2. Load online feed (Mock for now)
-            // Keep default mock feed item unless paths override it
         } else {
-            // Offline mode: Load downloaded videos
             try {
                 const downloaded = await offlineService.getAllDownloadedVideos();
                 if (downloaded.length > 0) {
-                    setCurrentFeedItem(downloaded[0]); 
+                    setFeedItems(downloaded); // Replace feed with downloaded items
+                    setCurrentIndex(0);
                 }
             } catch (e) {
                 console.error("Error loading offline videos", e);
             }
         }
         
-        // Check if current item is already downloaded (to update UI)
+        // Update download status for current feed items if online
         if (isOnline) {
             const downloaded = await offlineService.getAllDownloadedVideos();
-            const isSaved = downloaded.some(d => d.id === currentFeedItem.id);
-            setCurrentFeedItem(prev => ({ ...prev, isDownloaded: isSaved }));
+            const downloadedIds = new Set(downloaded.map(d => d.id));
+            setFeedItems(prev => prev.map(item => ({
+                ...item,
+                isDownloaded: downloadedIds.has(item.id)
+            })));
         }
     };
     init();
   }, [isOnline]);
 
   const handleSyncAction = (action: SyncAction) => {
-      // Replay actions logic
       if (action.type === 'XP_GAIN') {
           setXp(prev => prev + action.payload.amount);
       }
-      // Add other action handlers here
   };
 
   const handleDownloadClick = async () => {
-      if (currentFeedItem.isDownloaded) {
-          // Remove
-          await offlineService.removeVideo(currentFeedItem.id);
-          setCurrentFeedItem(prev => ({ ...prev, isDownloaded: false }));
+      const item = currentFeedItem;
+      if (item.isDownloaded) {
+          await offlineService.removeVideo(item.id);
+          setFeedItems(prev => prev.map(i => i.id === item.id ? { ...i, isDownloaded: false } : i));
       } else {
-          // Add
           try {
-              await offlineService.saveVideo(currentFeedItem);
-              setCurrentFeedItem(prev => ({ ...prev, isDownloaded: true }));
+              await offlineService.saveVideo(item);
+              setFeedItems(prev => prev.map(i => i.id === item.id ? { ...i, isDownloaded: true } : i));
           } catch (e: any) {
               alert(e.message || "Failed to download");
           }
@@ -256,42 +278,33 @@ const App: React.FC = () => {
             setAchievements(prev => prev.map(ach => {
                 if (ach.id === '1' && !ach.isUnlocked) {
                     const newProgress = ach.progress + 1;
-                    return {
-                        ...ach,
-                        progress: newProgress,
-                        isUnlocked: newProgress >= ach.maxProgress
-                    };
+                    return { ...ach, progress: newProgress, isUnlocked: newProgress >= ach.maxProgress };
                 }
                 return ach;
             }));
         }
       };
-
       updateState();
-
-      // Handle Sync Logic
       if (isOffline) {
-          await offlineService.queueSyncAction({
-              type: 'XP_GAIN',
-              payload: { amount: points }
-          });
+          await offlineService.queueSyncAction({ type: 'XP_GAIN', payload: { amount: points } });
       }
   };
 
-  // Learning Paths Handlers
   const handleAddPath = (path: LearningPath) => {
       setLearningPaths(prev => [path, ...prev]);
   };
 
   const handleSelectStep = (pathId: string, step: PathStep) => {
-      // Simulate playing the selected step's content
-      setCurrentFeedItem(prev => ({
-          ...prev,
-          topic: "Learning Path: " + pathId,
-          title: step.title,
-          description: step.description,
-          // In a real app, this would fetch the actual video ID associated with the step
-      }));
+      // Logic to play selected step video would go here
+      setActiveTab('home');
+  };
+
+  const handleTabChange = (tab: string) => {
+      setActiveTab(tab);
+      // Reset scroll if returning home
+      if (tab === 'home' && scrollContainerRef.current) {
+          // Optional: Scroll back to current index or keep position
+      }
   };
 
   return (
@@ -304,121 +317,123 @@ const App: React.FC = () => {
           </div>
       )}
 
-      {/* Video Layer */}
-      <VideoBackground 
-        // Use local blob URL if available (offline), otherwise remote
-        posterUrl={currentFeedItem.localPosterUrl || currentFeedItem.videoPosterUrl} 
-        altText={`Video about ${currentFeedItem.title}`} 
-      />
+      {/* --- HOME FEED VIEW --- */}
+      <div className={`h-full w-full ${activeTab === 'home' ? 'block' : 'hidden'}`}>
+        
+        {/* Global Fixed Overlays (Top) */}
+        <TopNav 
+            topic={currentFeedItem.topic}
+            title={currentFeedItem.title}
+            authorName={currentFeedItem.author.name}
+            streak={streak}
+            onStreakClick={() => setShowStreaks(true)}
+            onTimeBackClick={() => setShowTimeBack(true)}
+        />
 
-      {/* Top Nav Layer */}
-      <TopNav 
-        topic={currentFeedItem.topic}
-        title={currentFeedItem.title}
-        authorName={currentFeedItem.author.name}
-        streak={streak}
-        onStreakClick={() => setShowStreaks(true)}
-        onPathsClick={() => setShowPaths(true)}
-        onDevClick={() => setShowDevPortal(true)}
-        onTimeBackClick={() => setShowTimeBack(true)}
-        onUploadClick={() => setShowUpload(true)}
-      />
+        {/* Scrollable Container */}
+        <div 
+            ref={scrollContainerRef}
+            className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+            onScroll={handleScroll}
+        >
+            {feedItems.map((item, index) => (
+                <div key={item.id} className="h-full w-full snap-start relative">
+                    <VideoBackground 
+                        posterUrl={item.localPosterUrl || item.videoPosterUrl} 
+                        altText={`Video about ${item.title}`}
+                        isActive={index === currentIndex} 
+                    />
+                    
+                    {/* Per-Video Sidebar */}
+                    <ActionSidebar 
+                        author={item.author}
+                        stats={item.stats}
+                        isDownloaded={item.isDownloaded}
+                        onNoteClick={() => setShowNotes(true)}
+                        onDownloadClick={handleDownloadClick}
+                    />
+                </div>
+            ))}
+        </div>
 
-      {/* Right Actions Layer */}
-      <ActionSidebar 
-        author={currentFeedItem.author}
-        stats={currentFeedItem.stats}
-        isDownloaded={currentFeedItem.isDownloaded}
-        onNoteClick={() => setShowNotes(true)}
-        onDownloadClick={handleDownloadClick}
-      />
-
-      {/* Video Progress Bar */}
-      <div className={`absolute bottom-[26%] w-full z-20 px-2 pointer-events-none transition-opacity duration-300 ${isPanelExpanded ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-            <div className="h-full bg-primary w-[45%] rounded-full shadow-[0_0_10px_rgba(140,37,244,0.8)] relative">
-                 <div className="absolute right-0 top-1/2 -translate-y-1/2 size-2 bg-white rounded-full shadow-md"></div>
+        {/* Global Fixed Overlays (Bottom) */}
+        
+        {/* Video Progress Bar - Dynamic */}
+        <div className={`absolute bottom-[80px] w-full z-20 px-4 pointer-events-none transition-opacity duration-300 ${isPanelExpanded ? 'opacity-0' : 'opacity-100'}`}>
+            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+                <div 
+                    className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(140,37,244,0.8)] relative transition-[width] duration-100 ease-linear"
+                    style={{ width: `${progress}%` }}
+                >
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 size-2 bg-white rounded-full shadow-md"></div>
+                </div>
+            </div>
+            <div className="flex justify-between px-1 mt-1">
+                <span className="text-[10px] font-medium text-white/80 drop-shadow-md">
+                    {Math.floor((progress/100) * 90)}s
+                </span>
+                <span className="text-[10px] font-medium text-white/80 drop-shadow-md">1:30</span>
             </div>
         </div>
-        <div className="flex justify-between px-1 mt-1">
-            <span className="text-[10px] font-medium text-white/80 drop-shadow-md">0:45</span>
-            <span className="text-[10px] font-medium text-white/80 drop-shadow-md">1:30</span>
-        </div>
+
+        {/* Copilot / Transcript Panel */}
+        <BottomPanel 
+            transcript={currentFeedItem.transcript}
+            onQuizClick={handleQuizClick}
+            quizLoadingState={quizLoadingState}
+            isLiveConnected={connected}
+            isLiveSpeaking={isSpeaking}
+            liveTranscripts={transcripts}
+            onToggleLive={toggleLive}
+            onExpandChange={setIsPanelExpanded}
+        />
       </div>
 
-      {/* Bottom Panel Layer */}
-      <BottomPanel 
-        transcript={currentFeedItem.transcript}
-        onQuizClick={handleQuizClick}
-        quizLoadingState={quizLoadingState}
-        isLiveConnected={connected}
-        isLiveSpeaking={isSpeaking}
-        liveTranscripts={transcripts}
-        onToggleLive={toggleLive}
-        onExpandChange={setIsPanelExpanded}
+      {/* --- OTHER PAGES --- */}
+      <div className={`h-full w-full ${activeTab === 'discover' ? 'block' : 'hidden'}`}>
+          <DiscoverPage />
+      </div>
+
+      <div className={`h-full w-full ${activeTab === 'inbox' ? 'block' : 'hidden'}`}>
+          <InboxPage />
+      </div>
+
+      <div className={`h-full w-full ${activeTab === 'profile' ? 'block' : 'hidden'}`}>
+          <ProfilePage />
+      </div>
+
+
+      {/* --- GLOBAL BOTTOM NAV --- */}
+      <BottomNavBar 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onUpload={() => setShowUpload(true)}
       />
 
       {/* Visual Separator Gradient */}
       <div className="absolute bottom-0 inset-x-0 h-1 w-full bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-40"></div>
 
-      {/* Quiz Modal Overlay */}
+      {/* --- MODALS --- */}
       {showQuiz && quizData && (
-        <QuizModal 
-            quizData={quizData} 
-            onClose={() => setShowQuiz(false)}
-            onComplete={handleQuizComplete}
-        />
+        <QuizModal quizData={quizData} onClose={() => setShowQuiz(false)} onComplete={handleQuizComplete} />
       )}
-
-      {/* Notes Modal Overlay */}
       {showNotes && (
-        <NotesModal 
-            notes={notes}
-            onSaveNote={handleSaveNote}
-            onClose={() => setShowNotes(false)}
-            currentTime="0:45"
-        />
+        <NotesModal notes={notes} onSaveNote={handleSaveNote} onClose={() => setShowNotes(false)} currentTime="0:45" />
       )}
-
-      {/* Streaks Modal Overlay */}
       {showStreaks && (
-        <StreaksModal 
-            streak={streak}
-            xp={xp}
-            achievements={achievements}
-            onClose={() => setShowStreaks(false)}
-        />
+        <StreaksModal streak={streak} xp={xp} achievements={achievements} onClose={() => setShowStreaks(false)} />
       )}
-
-      {/* Learning Paths Modal */}
       {showPaths && (
-          <LearningPathsModal
-              paths={learningPaths}
-              onClose={() => setShowPaths(false)}
-              onAddPath={handleAddPath}
-              onSelectStep={handleSelectStep}
-          />
+          <LearningPathsModal paths={learningPaths} onClose={() => setShowPaths(false)} onAddPath={handleAddPath} onSelectStep={handleSelectStep} />
       )}
-
-      {/* Developer Portal Modal */}
       {showDevPortal && (
-          <DeveloperPortalModal 
-              onClose={() => setShowDevPortal(false)}
-          />
+          <DeveloperPortalModal onClose={() => setShowDevPortal(false)} />
       )}
-
-       {/* TimeBack Copilot Modal */}
        {showTimeBack && (
-          <TimeBackModal 
-              onClose={() => setShowTimeBack(false)}
-          />
+          <TimeBackModal onClose={() => setShowTimeBack(false)} />
       )}
-
-      {/* Upload Video Modal */}
       {showUpload && (
-          <UploadVideoModal 
-              onClose={() => setShowUpload(false)}
-          />
+          <UploadVideoModal onClose={() => setShowUpload(false)} />
       )}
     </div>
   );
