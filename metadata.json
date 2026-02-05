@@ -1,0 +1,7 @@
+{
+  "name": "TeachTap Learning Feed",
+  "description": "A vertical, TikTok-style learning feed featuring AI-generated quizzes and live facts to enhance educational content engagement.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
