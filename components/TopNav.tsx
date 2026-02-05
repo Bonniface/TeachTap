@@ -10,19 +10,31 @@ interface TopNavProps {
     onStreakClick: () => void;
     onPathsClick: () => void;
     onDevClick: () => void;
+    onTimeBackClick: () => void;
+    onUploadClick: () => void;
 }
 
-const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStreakClick, onPathsClick, onDevClick }) => {
+const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStreakClick, onPathsClick, onDevClick, onTimeBackClick, onUploadClick }) => {
     return (
         <div className="absolute top-0 inset-x-0 z-20 pt-12 pb-4 px-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
             <div className="flex items-start justify-between pointer-events-auto">
-                {/* Paths / Map Button */}
-                <button 
-                    onClick={onPathsClick}
-                    className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
-                >
-                    <span className="material-symbols-outlined group-hover:text-primary transition-colors">map</span>
-                </button>
+                <div className="flex gap-2">
+                     {/* Paths / Map Button */}
+                    <button 
+                        onClick={onPathsClick}
+                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
+                    >
+                        <span className="material-symbols-outlined group-hover:text-primary transition-colors">map</span>
+                    </button>
+
+                     {/* TimeBack Copilot Button */}
+                     <button 
+                        onClick={onTimeBackClick}
+                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
+                    >
+                        <span className="material-symbols-outlined group-hover:text-primary transition-colors">history_toggle_off</span>
+                    </button>
+                </div>
 
                 {/* Streak & Feed Toggle (Stacked or Adjusted) */}
                 <div className="flex flex-col items-center gap-2">
@@ -42,6 +54,15 @@ const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStr
                 </div>
 
                 <div className="flex gap-2">
+                    {/* Upload Button */}
+                    <button 
+                        onClick={onUploadClick}
+                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary"
+                        aria-label="Upload Video"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                    </button>
+
                     {/* Developer API Button */}
                     <button 
                         onClick={onDevClick}

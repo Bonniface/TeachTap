@@ -9,6 +9,8 @@ import NotesModal from './components/features/NotesModal';
 import StreaksModal from './components/features/StreaksModal';
 import LearningPathsModal from './components/features/LearningPathsModal';
 import DeveloperPortalModal from './components/features/DeveloperPortalModal';
+import TimeBackModal from './components/features/TimeBackModal';
+import UploadVideoModal from './components/features/UploadVideoModal';
 import { generateQuizForTopic } from './services/geminiService';
 import { offlineService } from './services/offlineService';
 import { useLiveGemini } from './hooks/useLiveGemini';
@@ -120,7 +122,9 @@ const App: React.FC = () => {
   const [showNotes, setShowNotes] = useState(false);
   const [showStreaks, setShowStreaks] = useState(false);
   const [showPaths, setShowPaths] = useState(false);
-  const [showDevPortal, setShowDevPortal] = useState(false); // New state
+  const [showDevPortal, setShowDevPortal] = useState(false);
+  const [showTimeBack, setShowTimeBack] = useState(false);
+  const [showUpload, setShowUpload] = useState(false); // New State
   
   // Logic State
   const [quizData, setQuizData] = useState<QuizQuestion | null>(null);
@@ -316,6 +320,8 @@ const App: React.FC = () => {
         onStreakClick={() => setShowStreaks(true)}
         onPathsClick={() => setShowPaths(true)}
         onDevClick={() => setShowDevPortal(true)}
+        onTimeBackClick={() => setShowTimeBack(true)}
+        onUploadClick={() => setShowUpload(true)}
       />
 
       {/* Right Actions Layer */}
@@ -398,6 +404,20 @@ const App: React.FC = () => {
       {showDevPortal && (
           <DeveloperPortalModal 
               onClose={() => setShowDevPortal(false)}
+          />
+      )}
+
+       {/* TimeBack Copilot Modal */}
+       {showTimeBack && (
+          <TimeBackModal 
+              onClose={() => setShowTimeBack(false)}
+          />
+      )}
+
+      {/* Upload Video Modal */}
+      {showUpload && (
+          <UploadVideoModal 
+              onClose={() => setShowUpload(false)}
           />
       )}
     </div>
