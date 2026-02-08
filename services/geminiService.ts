@@ -1,10 +1,12 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+
+import { GoogleGenAI, Type } from "@google/genai";
 import { QuizQuestion, LearningPath } from "../types";
 
-// Initialize the Gemini AI client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Always use named parameter for apiKey and use the environment variable directly.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const quizSchema: Schema = {
+// Define response schemas using the Type enum from the SDK.
+const quizSchema = {
   type: Type.OBJECT,
   properties: {
     question: {
@@ -28,7 +30,7 @@ const quizSchema: Schema = {
   required: ["question", "options", "correctAnswerIndex", "explanation"],
 };
 
-const pathSchema: Schema = {
+const pathSchema = {
     type: Type.OBJECT,
     properties: {
         title: { type: Type.STRING },
@@ -49,8 +51,12 @@ const pathSchema: Schema = {
     required: ["title", "description", "steps"]
 };
 
+/**
+ * Generates a quiz question for a given topic using Gemini 3 Flash.
+ */
 export const generateQuizForTopic = async (topic: string, context: string): Promise<QuizQuestion> => {
   try {
+    // Basic text task uses gemini-3-flash-preview.
     const model = 'gemini-3-flash-preview'; 
     const prompt = `Create a single multiple-choice quiz question about the topic: "${topic}". 
     Context from the video transcript: "${context}".
@@ -66,17 +72,17 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
       },
     });
 
+    // Access the text property directly, it is not a method.
     const text = response.text;
     if (!text) {
         throw new Error("No response from Gemini");
     }
     
-    const quizData = JSON.parse(text) as QuizQuestion;
-    return quizData;
+    return JSON.parse(text.trim()) as QuizQuestion;
 
   } catch (error) {
     console.error("Error generating quiz:", error);
-    // Fallback mock data in case of API failure or missing key
+    // Fallback data if API key is missing or request fails.
     return {
       question: "What does E=mc² represent in physics?",
       options: [
@@ -91,6 +97,9 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
   }
 };
 
+/**
+ * Generates a structured learning path using Gemini 3 Flash.
+ */
 export const generateLearningPath = async (topic: string): Promise<Omit<LearningPath, 'id' | 'totalSteps' | 'completedSteps' | 'coverImage'>> => {
     try {
         const model = 'gemini-3-flash-preview';
@@ -111,9 +120,8 @@ export const generateLearningPath = async (topic: string): Promise<Omit<Learning
         const text = response.text;
         if (!text) throw new Error("No response from Gemini");
 
-        const data = JSON.parse(text);
+        const data = JSON.parse(text.trim());
         
-        // Transform to match interface partially
         return {
             topic: topic,
             title: data.title,
@@ -124,13 +132,12 @@ export const generateLearningPath = async (topic: string): Promise<Omit<Learning
                 description: s.description,
                 duration: s.duration,
                 isCompleted: false,
-                isLocked: i > 0 // Lock all except first
+                isLocked: i > 0
             }))
         };
 
     } catch (error) {
         console.error("Error generating path:", error);
-        // Fallback
         return {
             topic,
             title: `Mastering ${topic}`,

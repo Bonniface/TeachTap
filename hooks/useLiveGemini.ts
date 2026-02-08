@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
 import { createBlob, decodeAudioData, decode } from '../utils/audioUtils';
@@ -24,9 +25,6 @@ export const useLiveGemini = (systemInstruction: string) => {
 
     const disconnect = useCallback(async () => {
         if (sessionRef.current) {
-            // sessionRef.current.close() is not always available depending on SDK version or if connection failed, 
-            // but for @google/genai we assume we can just drop the reference or call close if it exists.
-            // The SDK documentation says `session.close()`.
             try {
                 await sessionRef.current.close();
             } catch (e) {
@@ -75,7 +73,7 @@ export const useLiveGemini = (systemInstruction: string) => {
             streamRef.current = stream;
 
             // 3. Initialize Client
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             // 4. Connect
             const sessionPromise = ai.live.connect({
@@ -86,12 +84,12 @@ export const useLiveGemini = (systemInstruction: string) => {
                         
                         // Setup Input Processing
                         const source = inputAudioContext.createMediaStreamSource(stream);
-                        // Using ScriptProcessor as per documentation example for simplicity in this environment
                         const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
                         
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
+                            // Critical: Solely rely on sessionPromise resolves to send data.
                             sessionPromise.then((session) => {
                                 session.sendRealtimeInput({ media: pcmBlob });
                             });
@@ -144,10 +142,9 @@ export const useLiveGemini = (systemInstruction: string) => {
                             source.connect(outputNode);
                             source.addEventListener('ended', () => {
                                 sourcesRef.current.delete(source);
-                                // If no more sources, potentially stop speaking visual? 
-                                // But simpler to rely on turnComplete for logic end.
                             });
                             
+                            // Schedule audio for gapless playback
                             source.start(nextStartTimeRef.current);
                             nextStartTimeRef.current += audioBuffer.duration;
                             sourcesRef.current.add(source);

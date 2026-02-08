@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Note } from '../../types';
 import Card from '../common/Card';
 import Button from '../common/Button';
-import { useSpeechToText } from '../../hooks/useSpeechToText';
+import { DictatedInput } from '../common/DictatedInput';
 
 interface NotesModalProps {
     notes: Note[];
@@ -12,12 +12,9 @@ interface NotesModalProps {
     currentTime: string;
 }
 
+// NotesModal component provides a UI for students to view and capture lesson notes
 const NotesModal: React.FC<NotesModalProps> = ({ notes, onSaveNote, onClose, currentTime }) => {
     const [input, setInput] = useState('');
-
-    const { isListening, startListening } = useSpeechToText((text) => {
-        setInput(prev => (prev ? `${prev} ${text}` : text));
-    });
 
     const handleSave = () => {
         if (!input.trim()) return;
@@ -59,27 +56,15 @@ const NotesModal: React.FC<NotesModalProps> = ({ notes, onSaveNote, onClose, cur
 
                 <div className="p-4 border-t border-white/10 bg-black/20">
                     <div className="flex gap-2">
-                        <div className="relative flex-1 group">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono text-primary/80 border-r border-white/10 pr-2 select-none">{currentTime}</span>
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                placeholder="Add a note..."
-                                className="w-full bg-white/5 border border-white/10 rounded-lg pl-14 pr-12 py-2.5 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-white/30 transition-all"
-                                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                                autoFocus
-                            />
-                            <button 
-                                onClick={startListening}
-                                className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-white/40 hover:text-white'}`}
-                                title="Dictate note"
-                            >
-                                <span className="material-symbols-outlined text-xl">mic</span>
-                            </button>
-                        </div>
-                        <Button size="sm" onClick={handleSave} disabled={!input.trim()} className={input.trim() ? "bg-primary" : "bg-white/10"}>
-                            <span className="material-symbols-outlined text-lg">send</span>
+                        <DictatedInput 
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onTranscript={(text) => setInput(prev => prev ? `${prev} ${text}` : text)}
+                            placeholder="Type or speak a note..."
+                            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                        />
+                        <Button onClick={handleSave} disabled={!input.trim()}>
+                            Save
                         </Button>
                     </div>
                 </div>

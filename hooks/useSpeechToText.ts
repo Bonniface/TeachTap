@@ -7,7 +7,7 @@ export const useSpeechToText = (onTranscript: (text: string) => void) => {
   const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in this browser.");
+      alert("Speech recognition is not supported in this browser. Please try Chrome or Safari.");
       return;
     }
 
@@ -36,5 +36,10 @@ export const useSpeechToText = (onTranscript: (text: string) => void) => {
     }
   }, [onTranscript]);
 
-  return { isListening, startListening };
+  const stopListening = useCallback(() => {
+    // Note: Most browser implementations stop automatically on result if continuous is false
+    setIsListening(false);
+  }, []);
+
+  return { isListening, startListening, stopListening };
 };
