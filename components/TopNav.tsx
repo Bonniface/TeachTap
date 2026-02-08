@@ -39,20 +39,6 @@ const TopNav: React.FC<TopNavProps> = ({
                     </button>
                 </div>
 
-                {/* Feed Toggle */}
-                <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-9 items-center justify-center rounded-lg bg-black/40 backdrop-blur-md p-1 border border-white/10">
-                        <label className="flex cursor-pointer h-full items-center justify-center px-4 rounded-md bg-white/20 text-white text-xs font-bold transition-all shadow-sm">
-                            <span>For You</span>
-                            <input type="radio" name="feed_type" value="For You" className="hidden" defaultChecked />
-                        </label>
-                        <label className="flex cursor-pointer h-full items-center justify-center px-4 rounded-md text-white/60 hover:text-white text-xs font-medium transition-all">
-                            <span>Following</span>
-                            <input type="radio" name="feed_type" value="Following" className="hidden" />
-                        </label>
-                    </div>
-                </div>
-
                 {/* Right Actions */}
                 <div className="flex gap-2">
                     <button 

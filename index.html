@@ -1,13 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TeachTap Learning Feed</title>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
+      // Polyfill for process.env which is expected by the Gemini SDK and components
+      window.process = window.process || { env: { API_KEY: "" } };
+      
       tailwind.config = {
         darkMode: "class",
         theme: {
@@ -24,7 +28,7 @@
                 700: '#6d28d9',
                 800: '#5b21b6',
                 900: '#4c1d95',
-                DEFAULT: '#8c25f4', // Preserve original brand color as default
+                DEFAULT: '#8c25f4',
               },
               "background-light": "#f7f5f8",
               "background-dark": "#191022",
@@ -92,7 +96,6 @@
       .material-symbols-outlined {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       }
-      /* Global focus styles for accessibility */
       *:focus-visible {
         outline: 2px solid #8c25f4;
         outline-offset: 2px;
@@ -102,14 +105,17 @@
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.4/client",
+    "react-dom": "https://esm.sh/react-dom@^19.2.4",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
   </body>
 </html>

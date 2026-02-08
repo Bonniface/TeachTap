@@ -1,27 +1,27 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import VideoBackground from './components/VideoBackground';
-import TopNav from './components/TopNav';
-import ActionSidebar from './components/ActionSidebar';
-import BottomPanel from './components/BottomPanel';
-import QuizModal from './components/QuizModal';
-import NotesModal from './components/features/NotesModal';
-import StreaksModal from './components/features/StreaksModal';
-import LearningPathsModal from './components/features/LearningPathsModal';
-import DeveloperPortalModal from './components/features/DeveloperPortalModal';
-import TimeBackModal from './components/features/TimeBackModal';
-import UploadVideoModal from './components/features/UploadVideoModal';
-import ArenaModal from './components/features/ArenaModal';
-import PasscoModal from './components/features/PasscoModal';
-import BottomNavBar from './components/BottomNavBar';
-import DiscoverPage from './components/pages/DiscoverPage';
-import InboxPage from './components/pages/InboxPage';
-import ProfilePage from './components/pages/ProfilePage';
-import { generateQuizForTopic } from './services/geminiService';
-import { offlineService } from './services/offlineService';
-import { useLiveGemini } from './hooks/useLiveGemini';
-import { useOffline } from './hooks/useOffline';
-import { FeedItemData, LoadingState, QuizQuestion, Note, Achievement, SyncAction, LearningPath, PathStep } from './types';
+import VideoBackground from './components/VideoBackground.tsx';
+import TopNav from './components/TopNav.tsx';
+import ActionSidebar from './components/ActionSidebar.tsx';
+import BottomPanel from './components/BottomPanel.tsx';
+import QuizModal from './components/QuizModal.tsx';
+import NotesModal from './components/features/NotesModal.tsx';
+import StreaksModal from './components/features/StreaksModal.tsx';
+import LearningPathsModal from './components/features/LearningPathsModal.tsx';
+import DeveloperPortalModal from './components/features/DeveloperPortalModal.tsx';
+import TimeBackModal from './components/features/TimeBackModal.tsx';
+import UploadVideoModal from './components/features/UploadVideoModal.tsx';
+import ArenaModal from './components/features/ArenaModal.tsx';
+import PasscoModal from './components/features/PasscoModal.tsx';
+import BottomNavBar from './components/BottomNavBar.tsx';
+import DiscoverPage from './components/pages/DiscoverPage.tsx';
+import InboxPage from './components/pages/InboxPage.tsx';
+import ProfilePage from './components/pages/ProfilePage.tsx';
+import { generateQuizForTopic } from './services/geminiService.ts';
+import { offlineService } from './services/offlineService.ts';
+import { useLiveGemini } from './hooks/useLiveGemini.ts';
+import { useOffline } from './hooks/useOffline.ts';
+import { FeedItemData, LoadingState, QuizQuestion, Note, Achievement, SyncAction, LearningPath, PathStep } from './types.ts';
 
 // Extended Mock Feed - Base items
 const MOCK_FEED_BASE: FeedItemData[] = [
