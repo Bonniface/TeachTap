@@ -11,6 +11,8 @@ import LearningPathsModal from './components/features/LearningPathsModal';
 import DeveloperPortalModal from './components/features/DeveloperPortalModal';
 import TimeBackModal from './components/features/TimeBackModal';
 import UploadVideoModal from './components/features/UploadVideoModal';
+import ArenaModal from './components/features/ArenaModal';
+import PasscoModal from './components/features/PasscoModal';
 import BottomNavBar from './components/BottomNavBar';
 import DiscoverPage from './components/pages/DiscoverPage';
 import InboxPage from './components/pages/InboxPage';
@@ -67,7 +69,6 @@ const MOCK_FEED_BASE: FeedItemData[] = [
     }
 ];
 
-// Replicate for infinite scroll feel
 const MOCK_FEED: FeedItemData[] = [
     ...MOCK_FEED_BASE,
     ...MOCK_FEED_BASE.map(i => ({...i, id: i.id + '_dup1', title: i.title + ' (Part 2)'})),
@@ -76,7 +77,6 @@ const MOCK_FEED: FeedItemData[] = [
 
 const SYSTEM_INSTRUCTION = `You are a helpful AI tutor. You are witty, slightly eccentric, but extremely brilliant and encouraging. Keep your answers relatively short (under 2 sentences) to keep the conversation flowing.`;
 
-// Initial Mock Data
 const INITIAL_ACHIEVEMENTS: Achievement[] = [
     { id: '1', title: 'Quiz Whiz', description: 'Get a perfect score on 5 quizzes', icon: 'psychology', progress: 3, maxProgress: 5, isUnlocked: false, color: 'purple' },
     { id: '2', title: 'Social Butterfly', description: 'Share 3 videos with friends', icon: 'share', progress: 1, maxProgress: 3, isUnlocked: false, color: 'blue' },
@@ -104,24 +104,13 @@ const INITIAL_PATHS: LearningPath[] = [
 
 const App: React.FC = () => {
   const { isOnline, isOffline } = useOffline();
-  
-  // Navigation State
   const [activeTab, setActiveTab] = useState('home');
-
-  // Feed Scroll State
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Data State
   const [feedItems, setFeedItems] = useState<FeedItemData[]>(MOCK_FEED);
-  
-  // Derived current item for global components (Copilot, TopNav)
   const currentFeedItem = feedItems[currentIndex];
-  
-  // Progress Bar State
   const [progress, setProgress] = useState(0);
   
-  // Modal States
   const [showQuiz, setShowQuiz] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [showStreaks, setShowStreaks] = useState(false);
@@ -129,35 +118,28 @@ const App: React.FC = () => {
   const [showDevPortal, setShowDevPortal] = useState(false);
   const [showTimeBack, setShowTimeBack] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showArena, setShowArena] = useState(false);
+  const [showPassco, setShowPassco] = useState(false);
   
-  // Logic State
   const [quizData, setQuizData] = useState<QuizQuestion | null>(null);
   const [quizLoadingState, setQuizLoadingState] = useState<LoadingState>(LoadingState.IDLE);
-  
-  // Gamification & User Data
-  const [streak, setStreak] = useState(5); 
   const [xp, setXp] = useState(1200);
   const [notes, setNotes] = useState<Note[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>(INITIAL_ACHIEVEMENTS);
   const [learningPaths, setLearningPaths] = useState<LearningPath[]>(INITIAL_PATHS);
-
-  // UI State
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
-  // Live API Hook
   const { connect, disconnect, connected, isSpeaking, transcripts } = useLiveGemini(SYSTEM_INSTRUCTION);
 
-  // Handle Scroll to update active video index
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
       const { scrollTop, clientHeight } = e.currentTarget;
       const index = Math.round(scrollTop / clientHeight);
       if (index !== currentIndex && index >= 0 && index < feedItems.length) {
           setCurrentIndex(index);
-          setProgress(0); // Reset progress on slide change
+          setProgress(0);
       }
   };
 
-  // Progress Bar Animation
   useEffect(() => {
     let interval: number;
     if (!isPanelExpanded && activeTab === 'home') {
@@ -168,7 +150,6 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [currentIndex, isPanelExpanded, activeTab]);
 
-  // Initialize: Check for offline videos if offline
   useEffect(() => {
     const init = async () => {
         if (isOnline) {
@@ -177,15 +158,13 @@ const App: React.FC = () => {
             try {
                 const downloaded = await offlineService.getAllDownloadedVideos();
                 if (downloaded.length > 0) {
-                    setFeedItems(downloaded); // Replace feed with downloaded items
+                    setFeedItems(downloaded);
                     setCurrentIndex(0);
                 }
             } catch (e) {
                 console.error("Error loading offline videos", e);
             }
         }
-        
-        // Update download status for current feed items if online
         if (isOnline) {
             const downloaded = await offlineService.getAllDownloadedVideos();
             const downloadedIds = new Set(downloaded.map(d => d.id));
@@ -224,9 +203,7 @@ const App: React.FC = () => {
         setShowQuiz(true);
         return;
     }
-
     setQuizLoadingState(LoadingState.LOADING);
-    
     try {
         if (isOffline) {
             const mockOfflineQuiz = {
@@ -254,11 +231,8 @@ const App: React.FC = () => {
         alert("Live Chat requires an internet connection.");
         return;
     }
-    if (connected) {
-        disconnect();
-    } else {
-        connect();
-    }
+    if (connected) disconnect();
+    else connect();
   };
 
   const handleSaveNote = (content: string) => {
@@ -295,42 +269,31 @@ const App: React.FC = () => {
   };
 
   const handleSelectStep = (pathId: string, step: PathStep) => {
-      // Logic to play selected step video would go here
       setActiveTab('home');
   };
 
   const handleTabChange = (tab: string) => {
       setActiveTab(tab);
-      // Reset scroll if returning home
-      if (tab === 'home' && scrollContainerRef.current) {
-          // Optional: Scroll back to current index or keep position
-      }
   };
 
   return (
     <div className="bg-background-dark text-white font-display overflow-hidden h-screen w-full relative select-none">
-      
-      {/* Offline Indicator Banner */}
       {isOffline && (
           <div className="absolute top-0 inset-x-0 z-50 bg-orange-500 text-white text-xs font-bold text-center py-1">
               OFFLINE MODE • VIEWING DOWNLOADED CONTENT
           </div>
       )}
 
-      {/* --- HOME FEED VIEW --- */}
       <div className={`h-full w-full ${activeTab === 'home' ? 'block' : 'hidden'}`}>
-        
-        {/* Global Fixed Overlays (Top) */}
         <TopNav 
             topic={currentFeedItem.topic}
             title={currentFeedItem.title}
             authorName={currentFeedItem.author.name}
-            streak={streak}
-            onStreakClick={() => setShowStreaks(true)}
             onTimeBackClick={() => setShowTimeBack(true)}
+            onArenaClick={() => setShowArena(true)}
+            onPasscoClick={() => setShowPassco(true)}
         />
 
-        {/* Scrollable Container */}
         <div 
             ref={scrollContainerRef}
             className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
@@ -343,8 +306,6 @@ const App: React.FC = () => {
                         altText={`Video about ${item.title}`}
                         isActive={index === currentIndex} 
                     />
-                    
-                    {/* Per-Video Sidebar */}
                     <ActionSidebar 
                         author={item.author}
                         stats={item.stats}
@@ -355,10 +316,7 @@ const App: React.FC = () => {
                 </div>
             ))}
         </div>
-
-        {/* Global Fixed Overlays (Bottom) */}
         
-        {/* Video Progress Bar - Dynamic */}
         <div className={`absolute bottom-[80px] w-full z-20 px-4 pointer-events-none transition-opacity duration-300 ${isPanelExpanded ? 'opacity-0' : 'opacity-100'}`}>
             <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
@@ -368,15 +326,8 @@ const App: React.FC = () => {
                     <div className="absolute right-0 top-1/2 -translate-y-1/2 size-2 bg-white rounded-full shadow-md"></div>
                 </div>
             </div>
-            <div className="flex justify-between px-1 mt-1">
-                <span className="text-[10px] font-medium text-white/80 drop-shadow-md">
-                    {Math.floor((progress/100) * 90)}s
-                </span>
-                <span className="text-[10px] font-medium text-white/80 drop-shadow-md">1:30</span>
-            </div>
         </div>
 
-        {/* Copilot / Transcript Panel */}
         <BottomPanel 
             transcript={currentFeedItem.transcript}
             onQuizClick={handleQuizClick}
@@ -389,31 +340,24 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* --- OTHER PAGES --- */}
       <div className={`h-full w-full ${activeTab === 'discover' ? 'block' : 'hidden'}`}>
           <DiscoverPage />
       </div>
-
       <div className={`h-full w-full ${activeTab === 'inbox' ? 'block' : 'hidden'}`}>
           <InboxPage />
       </div>
-
       <div className={`h-full w-full ${activeTab === 'profile' ? 'block' : 'hidden'}`}>
           <ProfilePage />
       </div>
 
-
-      {/* --- GLOBAL BOTTOM NAV --- */}
       <BottomNavBar 
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onUpload={() => setShowUpload(true)}
       />
 
-      {/* Visual Separator Gradient */}
       <div className="absolute bottom-0 inset-x-0 h-1 w-full bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-40"></div>
 
-      {/* --- MODALS --- */}
       {showQuiz && quizData && (
         <QuizModal quizData={quizData} onClose={() => setShowQuiz(false)} onComplete={handleQuizComplete} />
       )}
@@ -421,7 +365,7 @@ const App: React.FC = () => {
         <NotesModal notes={notes} onSaveNote={handleSaveNote} onClose={() => setShowNotes(false)} currentTime="0:45" />
       )}
       {showStreaks && (
-        <StreaksModal streak={streak} xp={xp} achievements={achievements} onClose={() => setShowStreaks(false)} />
+        <StreaksModal streak={5} xp={xp} achievements={achievements} onClose={() => setShowStreaks(false)} />
       )}
       {showPaths && (
           <LearningPathsModal paths={learningPaths} onClose={() => setShowPaths(false)} onAddPath={handleAddPath} onSelectStep={handleSelectStep} />
@@ -429,11 +373,17 @@ const App: React.FC = () => {
       {showDevPortal && (
           <DeveloperPortalModal onClose={() => setShowDevPortal(false)} />
       )}
-       {showTimeBack && (
+      {showTimeBack && (
           <TimeBackModal onClose={() => setShowTimeBack(false)} />
       )}
       {showUpload && (
           <UploadVideoModal onClose={() => setShowUpload(false)} />
+      )}
+      {showArena && (
+          <ArenaModal onClose={() => setShowArena(false)} />
+      )}
+      {showPassco && (
+          <PasscoModal onClose={() => setShowPassco(false)} />
       )}
     </div>
   );

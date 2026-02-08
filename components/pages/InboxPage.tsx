@@ -5,7 +5,6 @@ const InboxPage: React.FC = () => {
     const activities = [
         { id: 1, type: 'like', user: 'Elon Musk', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-Tw2-YnT2oD1h8L4S6kVMdGWRwSpBVgYl8FpzkTjBwHtYre9yLHhbJ5zXHLlTGdDhQz8N1Z3RAhrITifNYGoJECrLQVB3gwcisv6B5JNuQbLp1DyDQelcV8KeR3CZkcQiiR6nQKTSFs0l2ubab2X1uanB7fT-ShAHmKtekKbXATouQhs3siRIzJiaD3sS9_C6cU7ID5y-B1C52EumwQpZpmSHBQMpFZTLSPJ7v4AD081xygTpklk-AztQrRzGJuoEOZ31Pkb55Sk', text: 'liked your comment: "Relativity is cool!"', time: '2m' },
         { id: 2, type: 'follow', user: 'Neil deGrasse Tyson', avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVclnW6Hm-h9-mBVYNMh4CZE6RIAIZ-M-OFEqUD7gByDWbJZoa63-lawZSy2ZAOoaCzk2SWl7BK8MXBSU7gZtcNoMGX0XaC7XUNJNdiPnb6DWC297Yb6hjbMhCjiDQ5HNzzOTC6Dqmvoj6ioFyPqk08oe6QdKbgeSXKgw7NIYcBD9U44hrbynC65GyRaJo_0JFdJbnrFr1heuC_Vf9vyKE2iFKxgPWqTcJggr22PYPIPrMlgfWBynuNTd9S9whMcTCqEUGdYJhnmg', text: 'started following you', time: '1h' },
-        { id: 3, type: 'system', user: 'TeachTap', avatar: '', text: 'You reached a 5 day streak! 🔥', time: '5h' },
         { id: 4, type: 'mention', user: 'Sarah Code', avatar: 'https://i.pravatar.cc/150?u=sarah', text: 'mentioned you in a comment', time: '1d' },
     ];
 

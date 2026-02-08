@@ -1,33 +1,46 @@
 
 import React from 'react';
-import StreakBadge from './common/StreakBadge';
 
 interface TopNavProps {
     topic: string;
     title: string;
     authorName: string;
-    streak: number;
-    onStreakClick: () => void;
     onTimeBackClick: () => void;
+    onArenaClick: () => void;
+    onPasscoClick: () => void;
 }
 
-const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStreakClick, onTimeBackClick }) => {
+const TopNav: React.FC<TopNavProps> = ({ 
+    topic, 
+    title, 
+    authorName, 
+    onTimeBackClick,
+    onArenaClick,
+    onPasscoClick
+}) => {
     return (
         <div className="absolute top-0 inset-x-0 z-20 pt-12 pb-4 px-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
             <div className="flex items-start justify-between pointer-events-auto">
+                {/* Left Actions */}
                 <div className="flex gap-2">
-                     {/* TimeBack Copilot Button */}
                      <button 
                         onClick={onTimeBackClick}
                         className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
+                        title="TimeBack Copilot"
                     >
                         <span className="material-symbols-outlined group-hover:text-primary transition-colors">history_toggle_off</span>
                     </button>
+                    <button 
+                        onClick={onArenaClick}
+                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
+                        title="Arena"
+                    >
+                        <span className="material-symbols-outlined group-hover:text-yellow-400 transition-colors">swords</span>
+                    </button>
                 </div>
 
-                {/* Streak & Feed Toggle (Stacked or Adjusted) */}
+                {/* Feed Toggle */}
                 <div className="flex flex-col items-center gap-2">
-                    {/* Segmented Control */}
                     <div className="flex h-9 items-center justify-center rounded-lg bg-black/40 backdrop-blur-md p-1 border border-white/10">
                         <label className="flex cursor-pointer h-full items-center justify-center px-4 rounded-md bg-white/20 text-white text-xs font-bold transition-all shadow-sm">
                             <span>For You</span>
@@ -38,12 +51,17 @@ const TopNav: React.FC<TopNavProps> = ({ topic, title, authorName, streak, onStr
                             <input type="radio" name="feed_type" value="Following" className="hidden" />
                         </label>
                     </div>
-                    {/* Streak Badge */}
-                    <StreakBadge streak={streak} onClick={onStreakClick} />
                 </div>
 
+                {/* Right Actions */}
                 <div className="flex gap-2">
-                    {/* Menu Button */}
+                    <button 
+                        onClick={onPasscoClick}
+                        className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary group"
+                        title="Passco"
+                    >
+                        <span className="material-symbols-outlined group-hover:text-blue-400 transition-colors">menu_book</span>
+                    </button>
                     <button className="flex items-center justify-center size-10 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/10 hover:bg-black/40 transition-colors focus:ring-2 focus:ring-primary">
                         <span className="material-symbols-outlined">more_vert</span>
                     </button>

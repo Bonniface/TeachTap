@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import { publicApiService } from '../../services/publicApiService';
+import { useSpeechToText } from '../../hooks/useSpeechToText';
 
 interface DeveloperPortalModalProps {
     onClose: () => void;
@@ -20,6 +21,8 @@ const DeveloperPortalModal: React.FC<DeveloperPortalModalProps> = ({ onClose }) 
     const [requestBody, setRequestBody] = useState('');
     const [apiResponse, setApiResponse] = useState<any>(null);
     const [isRequesting, setIsRequesting] = useState(false);
+
+    const { isListening, startListening } = useSpeechToText((text) => setRequestBody(prev => (prev ? `${prev} ${text}` : text)));
 
     const generateKey = () => {
         setIsLoadingKey(true);
@@ -207,29 +210,45 @@ const DeveloperPortalModal: React.FC<DeveloperPortalModalProps> = ({ onClose }) 
                                     {(selectedEndpoint === 'SUBMIT_QUIZ' || selectedEndpoint === 'CREATE_PLAYLIST') && (
                                         <div className="flex-1 flex flex-col">
                                             <label className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2 block">Request Body (JSON)</label>
-                                            <textarea 
-                                                className="flex-1 w-full bg-[#161b22] border border-white/20 rounded-lg p-3 font-mono text-xs text-white/90 focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
-                                                value={requestBody}
-                                                onChange={(e) => setRequestBody(e.target.value)}
-                                                placeholder={
-                                                    selectedEndpoint === 'SUBMIT_QUIZ' 
-                                                    ? '{\n  "videoId": "1",\n  "answerIndex": 1\n}' 
-                                                    : '{\n  "name": "My List",\n  "topics": ["Physics"]\n}'
-                                                }
-                                            />
+                                            <div className="relative flex-1">
+                                                <textarea 
+                                                    className="w-full h-full bg-[#161b22] border border-white/20 rounded-lg p-3 pr-10 font-mono text-xs text-white/90 focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
+                                                    value={requestBody}
+                                                    onChange={(e) => setRequestBody(e.target.value)}
+                                                    placeholder={
+                                                        selectedEndpoint === 'SUBMIT_QUIZ' 
+                                                        ? '{\n  "videoId": "1",\n  "answerIndex": 1\n}' 
+                                                        : '{\n  "name": "My List",\n  "topics": ["Physics"]\n}'
+                                                    }
+                                                />
+                                                <button 
+                                                    onClick={startListening}
+                                                    className={`absolute right-3 top-3 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-white/40 hover:text-white'}`}
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">mic</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
 
                                     {selectedEndpoint === 'SEARCH' && (
                                         <div>
                                             <label className="text-xs font-bold text-white/60 uppercase tracking-wider mb-2 block">Query Parameter</label>
-                                            <input 
-                                                type="text" 
-                                                className="w-full bg-[#161b22] border border-white/20 rounded-lg px-3 py-2 text-sm text-white outline-none"
-                                                placeholder="e.g. Physics"
-                                                value={requestBody}
-                                                onChange={(e) => setRequestBody(e.target.value)}
-                                            />
+                                            <div className="relative">
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full bg-[#161b22] border border-white/20 rounded-lg px-3 py-2 pr-10 text-sm text-white outline-none"
+                                                    placeholder="e.g. Physics"
+                                                    value={requestBody}
+                                                    onChange={(e) => setRequestBody(e.target.value)}
+                                                />
+                                                <button 
+                                                    onClick={startListening}
+                                                    className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-white/40 hover:text-white'}`}
+                                                >
+                                                    <span className="material-symbols-outlined text-lg">mic</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
 

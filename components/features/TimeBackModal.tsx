@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../common/Card';
 import Button from '../common/Button';
+import { useSpeechToText } from '../../hooks/useSpeechToText';
 
 interface TimeBackModalProps {
     onClose: () => void;
@@ -10,6 +11,11 @@ interface TimeBackModalProps {
 const TimeBackModal: React.FC<TimeBackModalProps> = ({ onClose }) => {
     const [analyzing, setAnalyzing] = useState(false);
     const [summary, setSummary] = useState<string | null>(null);
+    const [query, setQuery] = useState('');
+
+    const { isListening, startListening } = useSpeechToText((text) => {
+        setQuery(prev => (prev ? `${prev} ${text}` : text));
+    });
 
     const handleAnalyze = () => {
         setAnalyzing(true);
@@ -146,9 +152,17 @@ const TimeBackModal: React.FC<TimeBackModalProps> = ({ onClose }) => {
                     <div className="relative">
                         <input 
                             type="text" 
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
                             placeholder="Ask TimeBack about your learning..." 
                             className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 placeholder:text-white/20"
                         />
+                        <button 
+                            onClick={startListening}
+                            className={`absolute right-12 top-1/2 -translate-y-1/2 p-1.5 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-white/40 hover:text-white'}`}
+                        >
+                            <span className="material-symbols-outlined text-xl">mic</span>
+                        </button>
                         <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-primary/20 hover:bg-primary rounded-lg text-primary hover:text-white transition-colors">
                             <span className="material-symbols-outlined text-lg">arrow_upward</span>
                         </button>

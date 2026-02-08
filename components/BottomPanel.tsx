@@ -49,9 +49,9 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
     // Auto-expand/collapse based on live status
     useEffect(() => {
         if (isLiveConnected) {
-            setHeight(65); // Expand to 65% when live starts for better visibility
+            // User requested to show only 2-5% when live chat starts
+            setHeight(5); 
         } 
-        // We don't auto-collapse on disconnect to prevent jarring jumps, user can drag down
     }, [isLiveConnected]);
 
     // Auto-scroll for static transcript
@@ -101,21 +101,18 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
         const handleDragMove = (e: MouseEvent | TouchEvent) => {
             if (!isDragging) return;
             
-            // Prevent default touch behavior (scrolling) to ensure smooth dragging
             if (e.cancelable && e.type === 'touchmove') {
                e.preventDefault(); 
             }
 
             const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
-            const deltaY = dragStartY.current - clientY; // Dragging up increases height
+            const deltaY = dragStartY.current - clientY; 
             const newHeightPx = dragStartHeight.current + deltaY;
             const windowHeight = window.innerHeight;
             
-            // Calculate percentage
             let newHeightPct = (newHeightPx / windowHeight) * 100;
             
-            // Constraints
-            if (newHeightPct < 3) newHeightPct = 3; // Allow dragging almost completely down (minimized)
+            if (newHeightPct < 3) newHeightPct = 3; 
             if (newHeightPct > 95) newHeightPct = 95;
             
             setHeight(newHeightPct);
@@ -127,7 +124,7 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
 
             // Snap logic
             if (height < 15) {
-                setHeight(3); // Snap to minimized (just the handle visible)
+                setHeight(5); // Snap to minimized
             } else if (height < 40) {
                 setHeight(25); // Snap to default peek
             } else if (height < 75) {
@@ -158,22 +155,29 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
             className={`absolute bottom-0 inset-x-0 z-30 glass-panel rounded-t-2xl flex flex-col shadow-[0_-8px_30px_rgba(0,0,0,0.5)] ${isDragging ? '' : 'transition-[height] duration-500 cubic-bezier(0.32, 0.72, 0, 1)'}`}
             style={{ height: `${height}%` }}
         >
-            {/* Draggable Handle Indicator - Always Visible */}
+            {/* Draggable Handle Indicator */}
             <div 
-                className="w-full flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing hover:bg-white/5 transition-colors rounded-t-2xl touch-none"
+                className="w-full flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing hover:bg-white/5 transition-colors rounded-t-2xl touch-none relative"
                 onMouseDown={handleDragStart}
                 onTouchStart={handleDragStart}
             >
                 <div className="w-12 h-1.5 bg-white/30 rounded-full pointer-events-none mb-1"></div>
+                
+                {/* Live Status Indicator - Visible when minimized so user knows chat is active */}
+                {isLiveConnected && (
+                    <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-1">
+                        <span className="size-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span>
+                        <span className="text-[10px] font-bold text-white/60 tracking-widest uppercase">Live Copilot Active</span>
+                    </div>
+                )}
             </div>
 
-            {/* Content Area - Fades out when minimized to prevent overlap with BottomNav */}
+            {/* Content Area */}
             <div className={`flex flex-1 flex-row gap-4 px-5 pb-20 pt-1 overflow-hidden relative transition-opacity duration-200 ${isMinimized ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                 {/* Left: Content Area */}
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                     <div className="flex items-center justify-between mb-3 shrink-0">
                         <div className="flex items-center gap-2">
-                             {/* Mic/Live Toggle */}
                             <Button
                                 onClick={onToggleLive}
                                 variant={isLiveConnected ? 'danger' : 'secondary'}
@@ -191,7 +195,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
                         
                         {isLiveConnected && (
                             <div className="flex gap-1 h-4 items-end px-2">
-                                {/* Visualizer simulation */}
                                 {[1,2,3,4].map(i => (
                                     <div key={i} className={`w-1 bg-primary rounded-full animate-bounce`} style={{ height: isLiveSpeaking ? `${Math.random() * 100}%` : '20%', animationDelay: `${i * 0.1}s` }}></div>
                                 ))}
@@ -199,7 +202,6 @@ const BottomPanel: React.FC<BottomPanelProps> = ({
                         )}
                     </div>
 
-                    {/* Content Switcher */}
                     {isLiveConnected ? (
                         <div 
                             ref={liveScrollRef}

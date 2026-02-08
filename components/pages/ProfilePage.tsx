@@ -53,7 +53,7 @@ const ProfilePage: React.FC = () => {
 
                 <p className="text-sm text-center px-8 text-white/80">
                     🎓 Learning Physics & React <br/>
-                    🔥 5 Day Streak | Level 3 Scholar
+                    Level 3 Scholar
                 </p>
             </div>
 

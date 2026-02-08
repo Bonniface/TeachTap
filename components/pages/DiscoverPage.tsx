@@ -1,8 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '../common/Card';
+import { useSpeechToText } from '../../hooks/useSpeechToText';
 
 const DiscoverPage: React.FC = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+    
+    const { isListening, startListening } = useSpeechToText((text) => {
+        setSearchQuery(prev => (prev ? `${prev} ${text}` : text));
+    });
+
     const categories = ['Physics', 'Coding', 'History', 'Math', 'Biology', 'Art'];
     const trending = [
         { id: 1, tag: '#QuantumLeap', views: '2.4B' },
@@ -20,9 +27,17 @@ const DiscoverPage: React.FC = () => {
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 material-symbols-outlined">search</span>
                         <input 
                             type="text" 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search for lessons, users..." 
-                            className="w-full bg-white/10 border border-white/5 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:bg-white/20 transition-colors"
+                            className="w-full bg-white/10 border border-white/5 rounded-lg pl-10 pr-12 py-2.5 text-sm text-white focus:outline-none focus:bg-white/20 transition-colors"
                         />
+                        <button 
+                            onClick={startListening}
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-white/40 hover:text-white'}`}
+                        >
+                            <span className="material-symbols-outlined text-xl">mic</span>
+                        </button>
                     </div>
                     <span className="material-symbols-outlined text-white/80">qr_code_scanner</span>
                 </div>
