@@ -2,9 +2,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { QuizQuestion, LearningPath } from "../types";
 
-// Always use named parameter for apiKey and use the environment variable directly.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Define response schemas using the Type enum from the SDK.
 const quizSchema = {
   type: Type.OBJECT,
@@ -56,7 +53,7 @@ const pathSchema = {
  */
 export const generateQuizForTopic = async (topic: string, context: string): Promise<QuizQuestion> => {
   try {
-    // Basic text task uses gemini-3-flash-preview.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const model = 'gemini-3-flash-preview'; 
     const prompt = `Create a fresh, unique, and challenging multiple-choice quiz question about the topic: "${topic}". 
     Use the following context from the video transcript for specific details: "${context}".
@@ -77,7 +74,6 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
       },
     });
 
-    // Access the text property directly, it is not a method.
     const text = response.text;
     if (!text) {
         throw new Error("No response from Gemini");
@@ -87,7 +83,6 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
 
   } catch (error) {
     console.error("Error generating quiz:", error);
-    // Fallback data if API key is missing or request fails.
     return {
       question: "What does E=mc² represent in physics?",
       options: [
@@ -107,6 +102,7 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
  */
 export const generateLearningPath = async (topic: string): Promise<Omit<LearningPath, 'id' | 'totalSteps' | 'completedSteps' | 'coverImage'>> => {
     try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const model = 'gemini-3-flash-preview';
         const prompt = `Create a structured 5-step learning path for the topic: "${topic}".
         Provide a catchy title for the course, a brief description, and 5 sequential steps/lessons.

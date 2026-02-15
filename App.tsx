@@ -94,7 +94,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [feedItems, setFeedItems] = useState<FeedItemData[]>(MOCK_FEED);
-  const currentFeedItem = feedItems[currentIndex];
+  const currentFeedItem = feedItems[currentIndex] || feedItems[0];
   const [progress, setProgress] = useState(0);
   const [isUiVisible, setIsUiVisible] = useState(true);
   
@@ -177,18 +177,18 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-        if (isOnline) {
-            await offlineService.processSyncQueue(handleSyncAction);
-        } else {
-            try {
+        try {
+            if (isOnline) {
+                await offlineService.processSyncQueue(handleSyncAction);
+            } else {
                 const downloaded = await offlineService.getAllDownloadedVideos();
                 if (downloaded.length > 0) {
                     setFeedItems(downloaded);
                     setCurrentIndex(0);
                 }
-            } catch (e) {
-                console.error("Error loading offline videos", e);
             }
+        } catch (e) {
+            console.error("Initialization error:", e);
         }
     };
     init();
@@ -202,7 +202,7 @@ const App: React.FC = () => {
 
   const handleVideoUpload = (newVideo: FeedItemData) => {
       setFeedItems(prev => [newVideo, ...prev]);
-      setCurrentIndex(0); // Immediately jump to the new video
+      setCurrentIndex(0); 
       setActiveTab('home');
       setShowUpload(false);
   };
@@ -224,6 +224,7 @@ const App: React.FC = () => {
 
   const handleDownloadClick = async () => {
       const item = currentFeedItem;
+      if (!item) return;
       if (item.isDownloaded) {
           await offlineService.removeVideo(item.id);
           setFeedItems(prev => prev.map(i => i.id === item.id ? { ...i, isDownloaded: false } : i));
@@ -238,6 +239,7 @@ const App: React.FC = () => {
   };
 
   const handleQuizClick = async () => {
+    if (!currentFeedItem) return;
     setQuizLoadingState(LoadingState.LOADING);
     setQuizData(null); 
     
