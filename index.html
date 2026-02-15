@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
-      // Polyfill for process.env which is expected by the Gemini SDK and components
+      // Polyfill for process.env which is expected by components
+      // Vite will replace the actual key during build based on vite.config.ts
       window.process = { env: { API_KEY: "" } };
-      var process = window.process;
       
       tailwind.config = {
         darkMode: "class",
@@ -19,52 +19,14 @@
           extend: {
             colors: {
               primary: {
-                50: '#f5f3ff',
-                100: '#ede9fe',
-                200: '#ddd6fe',
-                300: '#c4b5fd',
-                400: '#a78bfa',
-                500: '#8b5cf6',
-                600: '#7c3aed',
-                700: '#6d28d9',
-                800: '#5b21b6',
-                900: '#4c1d95',
                 DEFAULT: '#8c25f4',
               },
-              "background-light": "#f7f5f8",
               "background-dark": "#191022",
               "success": "#00E054",
-              gray: {
-                50: '#f9fafb',
-                100: '#f3f4f6',
-                200: '#e5e7eb',
-                300: '#d1d5db',
-                400: '#9ca3af',
-                500: '#6b7280',
-                600: '#4b5563',
-                700: '#374151',
-                800: '#1f2937',
-                900: '#111827',
-              },
             },
             fontFamily: {
               "display": ["Space Grotesk", "sans-serif"],
               "body": ["Noto Sans", "sans-serif"]
-            },
-            borderRadius: {
-              "lg": "0.5rem",
-              "xl": "0.75rem",
-              "2xl": "1rem"
-            },
-            animation: {
-              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'pop': 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-            },
-            keyframes: {
-              popIn: {
-                '0%': { transform: 'scale(0.8)', opacity: '0' },
-                '100%': { transform: 'scale(1)', opacity: '1' },
-              }
             }
           },
         },
@@ -73,63 +35,29 @@
     <style>
       body {
         min-height: 100vh;
-        min-height: 100dvh;
         background-color: #191022;
         color: white;
       }
-      .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-      }
-      .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-      }
-      .glass-panel {
-          background: rgba(30, 24, 40, 0.85);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .fade-bottom {
-          mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-          -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-      }
       .material-symbols-outlined {
         font-family: 'Material Symbols Outlined';
-        font-weight: normal;
-        font-style: normal;
-        font-size: 24px;
-        line-height: 1;
-        letter-spacing: normal;
-        text-transform: none;
-        display: inline-block;
-        white-space: nowrap;
-        word-wrap: normal;
-        direction: ltr;
-        -webkit-font-smoothing: antialiased;
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      }
-      *:focus-visible {
-        outline: 2px solid #8c25f4;
-        outline-offset: 2px;
       }
     </style>
   <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react/": "https://esm.sh/react@18.3.1/",
-    "react-dom/": "https://esm.sh/react-dom@18.3.1/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
-    "react-swipeable": "https://esm.sh/react-swipeable@7.0.1?deps=react@18.3.1"
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "react-swipeable": "https://esm.sh/react-swipeable@^7.0.2",
+    "vite": "https://esm.sh/vite@^7.3.1"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
