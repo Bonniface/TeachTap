@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useSwipeable } from 'react-swipeable';
 import VideoBackground from './components/VideoBackground.tsx';
 import TopNav from './components/TopNav.tsx';
 import ActionSidebar from './components/ActionSidebar.tsx';
@@ -23,7 +24,7 @@ import { useLiveGemini } from './hooks/useLiveGemini.ts';
 import { useOffline } from './hooks/useOffline.ts';
 import { FeedItemData, LoadingState, QuizQuestion, Note, Achievement, SyncAction, LearningPath, PathStep } from './types.ts';
 
-// Extended Mock Feed - Base items
+// Extended Mock Feed - Base items with actual video loops
 const MOCK_FEED_BASE: FeedItemData[] = [
     {
       id: '1',
@@ -31,10 +32,12 @@ const MOCK_FEED_BASE: FeedItemData[] = [
       title: 'Relativity Basics',
       description: 'Learn the basics of special relativity with Albert Einstein.',
       videoPosterUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVclnW6Hm-h9-mBVYNMh4CZE6RIAIZ-M-OFEqUD7gByDWbJZoa63-lawZSy2ZAOoaCzk2SWl7BK8MXBSU7gZtcNoMGX0XaC7XUNJNdiPnb6DWC297Yb6hjbMhCjiDQ5HNzzOTC6Dqmvoj6ioFyPqk08oe6QdKbgeSXKgw7NIYcBD9U44hrbynC65GyRaJo_0JFdJbnrFr1heuC_Vf9vyKE2iFKxgPWqTcJggr22PYPIPrMlgfWBynuNTd9S9whMcTCqEUGdYJhnmg',
+      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       author: {
         name: 'Albert Einstein',
         avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-Tw2-YnT2oD1h8L4S6kVMdGWRwSpBVgYl8FpzkTjBwHtYre9yLHhbJ5zXHLlTGdDhQz8N1Z3RAhrITifNYGoJECrLQVB3gwcisv6B5JNuQbLp1DyDQelcV8KeR3CZkcQiiR6nQKTSFs0l2ubab2X1uanB7fT-ShAHmKtekKbXATouQhs3siRIzJiaD3sS9_C6cU7ID5y-B1C52EumwQpZpmSHBQMpFZTLSPJ7v4AD081xygTpklk-AztQrRzGJuoEOZ31Pkb55Sk',
-        isVerified: true
+        isVerified: true,
+        isSubscribed: false
       },
       stats: { likes: '12.5k', comments: '342', shares: '1.2k' },
       transcript: ["<span class='text-primary font-bold'>E=mc²</span> explains that energy equals mass times the speed of light squared.", "The speed of light is a constant, approximately 300,000 km per second.", "In simple terms, mass is just a super-concentrated form of energy waiting to be released."]
@@ -45,35 +48,19 @@ const MOCK_FEED_BASE: FeedItemData[] = [
       title: 'Black Holes 101',
       description: 'Understanding the event horizon.',
       videoPosterUrl: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2011&auto=format&fit=crop',
+      videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       author: {
         name: 'Neil Tyson',
         avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDVclnW6Hm-h9-mBVYNMh4CZE6RIAIZ-M-OFEqUD7gByDWbJZoa63-lawZSy2ZAOoaCzk2SWl7BK8MXBSU7gZtcNoMGX0XaC7XUNJNdiPnb6DWC297Yb6hjbMhCjiDQ5HNzzOTC6Dqmvoj6ioFyPqk08oe6QdKbgeSXKgw7NIYcBD9U44hrbynC65GyRaJo_0JFdJbnrFr1heuC_Vf9vyKE2iFKxgPWqTcJggr22PYPIPrMlgfWBynuNTd9S9whMcTCqEUGdYJhnmg',
-        isVerified: true
+        isVerified: true,
+        isSubscribed: false
       },
       stats: { likes: '45k', comments: '1.2k', shares: '5k' },
       transcript: ["A black hole is a region of spacetime where gravity is so strong that nothing can escape.", "The event horizon is the point of no return.", "Singularity lies at the center."]
-    },
-    {
-      id: '3',
-      topic: 'Chemistry',
-      title: 'The Periodic Table',
-      description: 'Why is it arranged that way?',
-      videoPosterUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=2070&auto=format&fit=crop',
-      author: {
-        name: 'Marie Curie',
-        avatarUrl: 'https://i.pravatar.cc/150?u=marie',
-        isVerified: true
-      },
-      stats: { likes: '8.2k', comments: '210', shares: '400' },
-      transcript: ["Elements are arranged by atomic number, electron configuration, and recurring chemical properties.", "Groups run vertically, periods run horizontally.", "Noble gases are inert and stable."]
     }
 ];
 
-const MOCK_FEED: FeedItemData[] = [
-    ...MOCK_FEED_BASE,
-    ...MOCK_FEED_BASE.map(i => ({...i, id: i.id + '_dup1', title: i.title + ' (Part 2)'})),
-    ...MOCK_FEED_BASE.map(i => ({...i, id: i.id + '_dup2', title: i.title + ' (Part 3)'}))
-];
+const MOCK_FEED: FeedItemData[] = [...MOCK_FEED_BASE];
 
 const SYSTEM_INSTRUCTION = `You are a helpful AI tutor. You are witty, slightly eccentric, but extremely brilliant and encouraging. Keep your answers relatively short (under 2 sentences) to keep the conversation flowing.`;
 
@@ -106,10 +93,10 @@ const App: React.FC = () => {
   const { isOnline, isOffline } = useOffline();
   const [activeTab, setActiveTab] = useState('home');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [feedItems, setFeedItems] = useState<FeedItemData[]>(MOCK_FEED);
   const currentFeedItem = feedItems[currentIndex];
   const [progress, setProgress] = useState(0);
+  const [isUiVisible, setIsUiVisible] = useState(true);
   
   const [showQuiz, setShowQuiz] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
@@ -131,24 +118,62 @@ const App: React.FC = () => {
 
   const { connect, disconnect, connected, isSpeaking, transcripts } = useLiveGemini(SYSTEM_INSTRUCTION);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-      const { scrollTop, clientHeight } = e.currentTarget;
-      const index = Math.round(scrollTop / clientHeight);
-      if (index !== currentIndex && index >= 0 && index < feedItems.length) {
-          setCurrentIndex(index);
-          setProgress(0);
-      }
-  };
+  // Swipe handlers using react-swipeable
+  const handlers = useSwipeable({
+      onSwipedUp: () => {
+          if (currentIndex < feedItems.length - 1) {
+              setCurrentIndex(prev => prev + 1);
+              setProgress(0);
+              setQuizData(null);
+              setIsUiVisible(true);
+          }
+      },
+      onSwipedDown: () => {
+          if (currentIndex > 0) {
+              setCurrentIndex(prev => prev - 1);
+              setProgress(0);
+              setQuizData(null);
+              setIsUiVisible(true);
+          }
+      },
+      trackMouse: true
+  });
+
+  // Keyboard navigation
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          if (activeTab !== 'home') return;
+          
+          if (e.key === 'ArrowDown') {
+              if (currentIndex < feedItems.length - 1) {
+                  setCurrentIndex(prev => prev + 1);
+                  setProgress(0);
+                  setQuizData(null);
+                  setIsUiVisible(true);
+              }
+          } else if (e.key === 'ArrowUp') {
+              if (currentIndex > 0) {
+                  setCurrentIndex(prev => prev - 1);
+                  setProgress(0);
+                  setQuizData(null);
+                  setIsUiVisible(true);
+              }
+          }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, activeTab, feedItems.length]);
 
   useEffect(() => {
     let interval: number;
-    if (!isPanelExpanded && activeTab === 'home') {
+    if (!isPanelExpanded && activeTab === 'home' && isUiVisible) {
         interval = window.setInterval(() => {
             setProgress(prev => (prev >= 100 ? 0 : prev + 0.5));
         }, 100);
     }
     return () => clearInterval(interval);
-  }, [currentIndex, isPanelExpanded, activeTab]);
+  }, [currentIndex, isPanelExpanded, activeTab, isUiVisible]);
 
   useEffect(() => {
     const init = async () => {
@@ -165,14 +190,6 @@ const App: React.FC = () => {
                 console.error("Error loading offline videos", e);
             }
         }
-        if (isOnline) {
-            const downloaded = await offlineService.getAllDownloadedVideos();
-            const downloadedIds = new Set(downloaded.map(d => d.id));
-            setFeedItems(prev => prev.map(item => ({
-                ...item,
-                isDownloaded: downloadedIds.has(item.id)
-            })));
-        }
     };
     init();
   }, [isOnline]);
@@ -181,6 +198,28 @@ const App: React.FC = () => {
       if (action.type === 'XP_GAIN') {
           setXp(prev => prev + action.payload.amount);
       }
+  };
+
+  const handleVideoUpload = (newVideo: FeedItemData) => {
+      setFeedItems(prev => [newVideo, ...prev]);
+      setCurrentIndex(0); // Immediately jump to the new video
+      setActiveTab('home');
+      setShowUpload(false);
+  };
+
+  const handleSubscribeToggle = (authorName: string) => {
+      setFeedItems(prev => prev.map(item => {
+          if (item.author.name === authorName) {
+              return {
+                  ...item,
+                  author: {
+                      ...item.author,
+                      isSubscribed: !item.author.isSubscribed
+                  }
+              };
+          }
+          return item;
+      }));
   };
 
   const handleDownloadClick = async () => {
@@ -199,18 +238,16 @@ const App: React.FC = () => {
   };
 
   const handleQuizClick = async () => {
-    if (quizData) {
-        setShowQuiz(true);
-        return;
-    }
     setQuizLoadingState(LoadingState.LOADING);
+    setQuizData(null); 
+    
     try {
         if (isOffline) {
             const mockOfflineQuiz = {
-                 question: "What concept links Energy and Mass?",
+                 question: `A quick check on ${currentFeedItem.topic}...`,
                  options: ["Gravity", "Relativity", "Magnetism", "Force"],
                  correctAnswerIndex: 1,
-                 explanation: "Special relativity demonstrates that mass and energy are equivalent."
+                 explanation: "Even offline, we keep your brain sharp!"
             };
             setQuizData(mockOfflineQuiz);
         } else {
@@ -221,7 +258,7 @@ const App: React.FC = () => {
         setQuizLoadingState(LoadingState.SUCCESS);
         setShowQuiz(true);
     } catch (error) {
-        console.error(error);
+        console.error("Failed to generate quiz:", error);
         setQuizLoadingState(LoadingState.ERROR);
     }
   };
@@ -246,6 +283,7 @@ const App: React.FC = () => {
   };
 
   const handleQuizComplete = async (points: number) => {
+      setQuizData(null);
       const updateState = () => {
           setXp(prev => prev + points);
           if (points >= 100) {
@@ -285,39 +323,48 @@ const App: React.FC = () => {
       )}
 
       <div className={`h-full w-full ${activeTab === 'home' ? 'block' : 'hidden'}`}>
-        <TopNav 
-            topic={currentFeedItem.topic}
-            title={currentFeedItem.title}
-            authorName={currentFeedItem.author.name}
-            onTimeBackClick={() => setShowTimeBack(true)}
-            onArenaClick={() => setShowArena(true)}
-            onPasscoClick={() => setShowPassco(true)}
-        />
+        <div className={`transition-all duration-300 ${isUiVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <TopNav 
+                topic={currentFeedItem?.topic || 'Learning'}
+                title={currentFeedItem?.title || 'Untitled'}
+                authorName={currentFeedItem?.author.name || 'Anonymous'}
+                onTimeBackClick={() => setShowTimeBack(true)}
+                onArenaClick={() => setShowArena(true)}
+                onPasscoClick={() => setShowPassco(true)}
+            />
+        </div>
 
-        <div 
-            ref={scrollContainerRef}
-            className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
-            onScroll={handleScroll}
-        >
-            {feedItems.map((item, index) => (
-                <div key={item.id} className="h-full w-full snap-start relative">
-                    <VideoBackground 
-                        posterUrl={item.localPosterUrl || item.videoPosterUrl} 
-                        altText={`Video about ${item.title}`}
-                        isActive={index === currentIndex} 
-                    />
-                    <ActionSidebar 
-                        author={item.author}
-                        stats={item.stats}
-                        isDownloaded={item.isDownloaded}
-                        onNoteClick={() => setShowNotes(true)}
-                        onDownloadClick={handleDownloadClick}
-                    />
-                </div>
-            ))}
+        {/* Swipeable Video Feed Container */}
+        <div {...handlers} className="h-full w-full overflow-hidden relative bg-black">
+             <div 
+                className="h-full w-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                style={{ transform: `translateY(-${currentIndex * 100}%)` }}
+             >
+                {feedItems.map((item, index) => (
+                    <div key={item.id} className="h-full w-full relative">
+                        <VideoBackground 
+                            videoUrl={item.videoUrl}
+                            posterUrl={item.localPosterUrl || item.videoPosterUrl} 
+                            altText={`Video about ${item.title}`}
+                            isActive={index === currentIndex} 
+                            onToggleUi={() => setIsUiVisible(!isUiVisible)}
+                        />
+                        <div className={`transition-all duration-300 ${isUiVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none'}`}>
+                            <ActionSidebar 
+                                author={item.author}
+                                stats={item.stats}
+                                isDownloaded={item.isDownloaded}
+                                onNoteClick={() => setShowNotes(true)}
+                                onDownloadClick={handleDownloadClick}
+                                onSubscribeToggle={() => handleSubscribeToggle(item.author.name)}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
         
-        <div className={`absolute bottom-[80px] w-full z-20 px-4 pointer-events-none transition-opacity duration-300 ${isPanelExpanded ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`absolute bottom-[80px] w-full z-20 px-4 pointer-events-none transition-opacity duration-300 ${isPanelExpanded || !isUiVisible ? 'opacity-0' : 'opacity-100'}`}>
             <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
                 <div 
                     className="h-full bg-primary rounded-full shadow-[0_0_10px_rgba(140,37,244,0.8)] relative transition-[width] duration-100 ease-linear"
@@ -328,16 +375,18 @@ const App: React.FC = () => {
             </div>
         </div>
 
-        <BottomPanel 
-            transcript={currentFeedItem.transcript}
-            onQuizClick={handleQuizClick}
-            quizLoadingState={quizLoadingState}
-            isLiveConnected={connected}
-            isLiveSpeaking={isSpeaking}
-            liveTranscripts={transcripts}
-            onToggleLive={toggleLive}
-            onExpandChange={setIsPanelExpanded}
-        />
+        <div className={`transition-all duration-500 transform ${isUiVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}>
+            <BottomPanel 
+                transcript={currentFeedItem?.transcript || []}
+                onQuizClick={handleQuizClick}
+                quizLoadingState={quizLoadingState}
+                isLiveConnected={connected}
+                isLiveSpeaking={isSpeaking}
+                liveTranscripts={transcripts}
+                onToggleLive={toggleLive}
+                onExpandChange={setIsPanelExpanded}
+            />
+        </div>
       </div>
 
       <div className={`h-full w-full ${activeTab === 'discover' ? 'block' : 'hidden'}`}>
@@ -350,13 +399,13 @@ const App: React.FC = () => {
           <ProfilePage />
       </div>
 
-      <BottomNavBar 
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        onUpload={() => setShowUpload(true)}
-      />
-
-      <div className="absolute bottom-0 inset-x-0 h-1 w-full bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-40"></div>
+      <div className={`transition-all duration-300 ${isUiVisible || activeTab !== 'home' ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}>
+          <BottomNavBar 
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onUpload={() => setShowUpload(true)}
+          />
+      </div>
 
       {showQuiz && quizData && (
         <QuizModal quizData={quizData} onClose={() => setShowQuiz(false)} onComplete={handleQuizComplete} />
@@ -377,7 +426,7 @@ const App: React.FC = () => {
           <TimeBackModal onClose={() => setShowTimeBack(false)} />
       )}
       {showUpload && (
-          <UploadVideoModal onClose={() => setShowUpload(false)} />
+          <UploadVideoModal onClose={() => setShowUpload(false)} onVideoUpload={handleVideoUpload} />
       )}
       {showArena && (
           <ArenaModal onClose={() => setShowArena(false)} />

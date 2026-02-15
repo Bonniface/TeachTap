@@ -3,6 +3,7 @@ export interface Author {
     name: string;
     avatarUrl: string;
     isVerified: boolean;
+    isSubscribed?: boolean;
 }
 
 export interface FeedStats {
@@ -17,6 +18,7 @@ export interface FeedItemData {
     title: string;
     description: string;
     videoPosterUrl: string; // Remote URL
+    videoUrl?: string; // Actual video source
     localPosterUrl?: string; // Blob URL for offline
     author: Author;
     stats: FeedStats;

@@ -58,9 +58,14 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
   try {
     // Basic text task uses gemini-3-flash-preview.
     const model = 'gemini-3-flash-preview'; 
-    const prompt = `Create a single multiple-choice quiz question about the topic: "${topic}". 
-    Context from the video transcript: "${context}".
-    Ensure the question is engaging and educational.`;
+    const prompt = `Create a fresh, unique, and challenging multiple-choice quiz question about the topic: "${topic}". 
+    Use the following context from the video transcript for specific details: "${context}".
+    
+    Guidelines:
+    1. Focus on a core concept mentioned in the context.
+    2. Provide four plausible-sounding options, but only one is definitively correct.
+    3. Ensure the explanation is insightful and adds value beyond just confirming the answer.
+    4. Make the question distinct—avoid generic or surface-level facts.`;
 
     const response = await ai.models.generateContent({
       model: model,
@@ -68,7 +73,7 @@ export const generateQuizForTopic = async (topic: string, context: string): Prom
       config: {
         responseMimeType: "application/json",
         responseSchema: quizSchema,
-        systemInstruction: "You are an educational AI assistant designed to test students' knowledge.",
+        systemInstruction: "You are a master educator AI. You create engaging, thought-provoking quiz questions to help students master complex subjects.",
       },
     });
 

@@ -18,17 +18,25 @@ export const DictatedInput: React.FC<DictatedInputProps> = ({
   iconClassName,
   ...props 
 }) => {
-  const handleSpeech = (text: string) => {
+  // Use a ref to access latest value/props without triggering re-renders of the hook
+  const propsRef = React.useRef({ onTranscript, onChange, value });
+  
+  React.useEffect(() => {
+    propsRef.current = { onTranscript, onChange, value };
+  }, [onTranscript, onChange, value]);
+
+  const handleSpeech = React.useCallback((text: string) => {
+    const { onTranscript, onChange, value } = propsRef.current;
+    
     if (onTranscript) {
       onTranscript(text);
     } else if (onChange) {
-      // Create a mock event for compatibility
       const mockEvent = {
         target: { value: value ? `${value} ${text}` : text }
       } as React.ChangeEvent<HTMLInputElement>;
       onChange(mockEvent);
     }
-  };
+  }, []);
 
   const { isListening, startListening } = useSpeechToText(handleSpeech);
 
@@ -50,13 +58,13 @@ export const DictatedInput: React.FC<DictatedInputProps> = ({
           startListening();
         }}
         className={cn(
-          "absolute right-3 top-1/2 -translate-y-1/2 transition-all duration-200",
-          isListening ? "text-red-500 animate-pulse scale-125" : "text-white/30 hover:text-white",
+          "absolute right-3 top-1/2 -translate-y-1/2 transition-all duration-200 p-1.5 rounded-full hover:bg-white/10",
+          isListening ? "text-red-500 animate-pulse scale-110 bg-red-500/10" : "text-white/40 hover:text-white",
           iconClassName
         )}
         title="Voice dictation"
       >
-        <span className="material-symbols-outlined text-xl">mic</span>
+        <span className="material-symbols-outlined text-xl leading-none">mic</span>
       </button>
     </div>
   );
@@ -75,7 +83,15 @@ export const DictatedTextArea: React.FC<DictatedTextAreaProps> = ({
   containerClassName,
   ...props 
 }) => {
-  const handleSpeech = (text: string) => {
+  const propsRef = React.useRef({ onTranscript, onChange, value });
+  
+  React.useEffect(() => {
+    propsRef.current = { onTranscript, onChange, value };
+  }, [onTranscript, onChange, value]);
+
+  const handleSpeech = React.useCallback((text: string) => {
+    const { onTranscript, onChange, value } = propsRef.current;
+    
     if (onTranscript) {
       onTranscript(text);
     } else if (onChange) {
@@ -84,7 +100,7 @@ export const DictatedTextArea: React.FC<DictatedTextAreaProps> = ({
       } as React.ChangeEvent<HTMLTextAreaElement>;
       onChange(mockEvent);
     }
-  };
+  }, []);
 
   const { isListening, startListening } = useSpeechToText(handleSpeech);
 
@@ -106,12 +122,12 @@ export const DictatedTextArea: React.FC<DictatedTextAreaProps> = ({
           startListening();
         }}
         className={cn(
-          "absolute right-3 top-4 transition-all duration-200",
-          isListening ? "text-red-500 animate-pulse scale-125" : "text-white/30 hover:text-white"
+          "absolute right-3 top-3 transition-all duration-200 p-1.5 rounded-full hover:bg-white/10",
+          isListening ? "text-red-500 animate-pulse scale-110 bg-red-500/10" : "text-white/40 hover:text-white"
         )}
         title="Voice dictation"
       >
-        <span className="material-symbols-outlined text-xl">mic</span>
+        <span className="material-symbols-outlined text-xl leading-none">mic</span>
       </button>
     </div>
   );
